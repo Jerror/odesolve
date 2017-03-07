@@ -3,13 +3,9 @@
 
 #include <stdlib.h>
 
-// flattened sparse representation of derivative matrix f s.th. u' = f * u
-struct derivative_sparse
-{
-    int *j; // column index
-    double *c; // element (coefficient of u_j in f_i * u)
-};
+typedef void (*derivative_function)(double t_n, double *u_n, double *out);
 
-typedef void *(*derivative_function)(double t, double *u_n, double *out)
+void euler(double h, int numsteps, int dim, 
+           double t0, double *u, derivative_function get_f);
 
 #endif // #include guard
