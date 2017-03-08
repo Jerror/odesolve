@@ -8,7 +8,7 @@ void euler(double h, int numsteps, int dim,
     {
         get_f(t0 + h * n, &u[dim * n], f_buffer);
         for (int i = 0; i < dim; ++i) {
-            u[dim * (n + 1) + i] += h * f_buffer[i];
+            u[dim * (n + 1) + i] = u[dim * n + i] + h * f_buffer[i];
         }
     }
 }
