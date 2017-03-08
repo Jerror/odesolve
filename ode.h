@@ -5,7 +5,7 @@
 
 typedef void (*derivative_function)(double t_n, double *u_n, double *out);
 
-void euler(double h, int numsteps, int dim, 
-           double t0, double *u, derivative_function get_f);
+void euler(double *u, double *u_init, int dim, int numsteps, 
+           double h, double t, derivative_function get_f);
 
 #endif // #include guard
