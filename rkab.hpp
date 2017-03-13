@@ -1,19 +1,28 @@
 // Licensed GPLv2
-#ifndef INC_RKAB_h // #include guard
-#define INC_RKAB_h // ensure this file is only included once
+#ifndef INC_RKAB_hpp // #include guard
+#define INC_RKAB_hpp // ensure this file is only included once
 
+#include "ode.h"
 #include <assert>
 #include <cmath>
-#include <functional>
+
 
 template<typename T>
-struct rkab_results
+struct results_rkab
 {
     int numsteps;
     T *t;
     T *u;
     int numfailures;
 };
+
+template<typename T>
+void delete_results_rkab(results_rkab<T> *results)
+{
+    delete results->t;
+    delete results->u;
+    delete results;
+}
 
 template<typename T, typename tolT>
 T acceptability_rel(int dim, T *ya, T *yb, tolT tol)
@@ -33,12 +42,12 @@ T acceptability_rel(int dim, T *ya, T *yb, tolT tol)
 }
 
 template<typename T, typename tolT>
-struct rkab_results<T> rkab(int astages, int bstages,
-                            double *ba, double *bb, double *a, double *c,
-                            T *u_init, int dim, int maxsteps, tolT tol,
-                            T t, T t_end, derivative_function get_f)
+struct results_rkab<T> *rkab(int astages, int bstages,
+                             T *ba, T *bb, T *a, T *c,
+                             T *u_init, int dim, int maxsteps, tolT tol,
+                             T t, T t_end, derivative_function get_f)
 {
-    assert(astages < bstages)
+    assert(astages < bstages);
 
     // Initialize dynamically sized memory for holding results
     std::vector<T> tvec;
@@ -51,13 +60,14 @@ struct rkab_results<T> rkab(int astages, int bstages,
 
     // Initialize
     int numfailures = 0;
+    int numsteps = 0;
     std:copy(u_init, u_init + dim, ua);
     std:copy(u_init, u_init + dim, ub);
     std:copy(u_init, u_init + dim, u_s);
 
     // I'll advance and dereference these aliases, rather than index arrays
     T *kk = k;
-    double *aa = a;
+    T *aa = a;
     // This pointer will make it easier to reset temporary arrays on failure
     T *u_prev = u_init;
 
@@ -105,7 +115,7 @@ struct rkab_results<T> rkab(int astages, int bstages,
             } // Here s == bstages, kk == &k[(bstages - 1) * dim]
             for (int i = 0; i < dim; ++i){
                 ub[j] += h * bb[s - 1] * kk[i]; // finish last stage
-            } // Note, I've asserted astages < bstages; ua is already complete.
+            } // Note: I asserted astages < bstages, so ua is already complete.
             kk = k; aa = a;
 
             // acceptability = (tolerance) / (relative error)
@@ -113,13 +123,14 @@ struct rkab_results<T> rkab(int astages, int bstages,
             // If the step is acceptable or the step size is minimal
             if (acceptability > 1 || h <= hmin)
             { // Accept the step
+                ++numsteps;
                 t += h;
                 tvec.push_back(t)
                 std:copy(ub, ub + dim, ua);
                 std:copy(ub, ub + dim, u_s);
                 // This should be the only place I append to u
                 u.assign(ub, ub + dim);
-                // because this pointer becomes invalid when the vector resizes
+                // because this pointer dies when the vector needs more memory
                 u_prev = &u.back() - dim;
                 // Adapt the step size; don't increase by a factor > 10
                 h *= std::min(10, 0.8 * std::pow(acceptability, 1.0/bstages));
@@ -143,8 +154,48 @@ struct rkab_results<T> rkab(int astages, int bstages,
             }
         }
     }   
+    assert(tvec.size() == numsteps);
+    assert(u.size() == numsteps * dim); 
+
+    // Allocate memory dynamically (persists outside function) for results
+    tarr = new T[numsteps], // time array
+    uarr = new T[numsteps * dim], // u array
+    results_rkab *results = new results_rkab { 
+        numfailures,
+        tarr, // pointer
+        uarr, // pointer
+        numsteps
+    }
+    // Copy time and u data from the vectors.
+    //  Can't return vectors directly because I want a C-compatible interface.
+    std::copy(tvec.begin(), tvec.end(), tarr);
+    std::copy(u.begin(), u.end(), uarr);
+    return results;
 }
 
-std::bind(rkab<double>, int astages, int bstages,
-                        double *ba, double *bb, double *a, double *c)
+
+/* Templates can't extern "C" so I'll manually instantiate and extern all of
+   the objects I want to expose. I'll use macros to help. */
+
+// C-extern results_rkab and destructor under suffixed symbol for type T
+#define EXTERNC_RKAB_RESULTS(T) \
+    extern "C" typedef results_rkab<T> results_rkab_##T;              \
+    extern "C" void delete_results_rkab_##T(results_rkab_##T results) \
+    {   delete_results_rkab<T>(results)   }
+
+EXTERNC_RKAB_RESULTS(float)
+EXTERNC_RKAB_RESULTS(double)
+typedef long double ldouble; // One-symbol alias for 80bit float (usually)
+EXTERNC_RKAB_RESULTS(ldouble)
+// complex, MPFR, &c...
+
+// C-extern rkab instance under symbol "name" with types and tableau bound 
+#define EXTERNC_RKAB(name, T, tolT, astages, bstages, ba, bb, a, c) \
+    extern "C" results_rkab_##T name(T *u_init, int dim, int maxsteps,   \
+                                     tolT tol, T t, T t_end,             \
+                                     derivative_function get_f)          \
+    {   return rkab<T, tolT>(astages, bstages, ba, bb, a, c,             \
+                             u_init, dim, maxsteps, tol, t, t_end, get_f)}
+// I'll use this in implementation files (eg., 'rk45.cpp', 'rk23.cpp').
+
 #endif // #include guard
