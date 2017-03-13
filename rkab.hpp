@@ -4,6 +4,7 @@
 
 #include "ode.h" // for derivative_function
 #include <assert.h> // for assertions
+#include <alloca.h> // for allocating memory on the stack
 #include <algorithm> // for copy, min, max
 #include <boost/math/special_functions/ulp.hpp> // for ulp (MATLAB's eps)
 #include <limits> // for numeric_limits
@@ -29,23 +30,26 @@ void delete_results_rkab(results_rkab<T> *results)
     delete results;
 }
 
-template<typename T, typename tolT>
-T acceptability_rel(int dim, T *ya, T *yb, tolT tol)
+template<typename T>
+T acceptability_rel(int dim, T *ya, T *yb, T tol) // scalar tolerance
 {
     T acc = std::numeric_limits<T>::infinity();
-    T acc_temp;
-    for (int i = 0; i < dim; ++i)
-    {
-        if (std::is_pointer<tolT>::value){ // vector of tolerances
-            acc_temp = std::abs(tol[i] * yb[i] / (ya[i] - yb[i]));
-        } else { // scalar tolerance
-            acc_temp = std::abs(tol * yb[i] / (ya[i] - yb[i]));
-        }
-        acc = std::min(acc, acc_temp);
+    for (int i = 0; i < dim; ++i) {
+        acc = std::min(acc, std::abs(tol * yb[i] / (ya[i] - yb[i])));
     }
     return acc;
 }
-
+// Overload for an array of tolerances for each component of u
+template<typename T>
+T acceptability_rel(int dim, T *ya, T *yb, T *tol)
+{
+    T acc = std::numeric_limits<T>::infinity();
+    for (int i = 0; i < dim; ++i) {
+        acc = std::min(acc, std::abs(tol[i] * yb[i] / (ya[i] - yb[i])));
+    }
+    return acc;
+}
+    
 template<typename T, typename tolT>
 struct results_rkab<T> *rkab(int astages, int bstages,
                              const T *ba, const T *bb, const T *a, const T *c,
@@ -57,11 +61,11 @@ struct results_rkab<T> *rkab(int astages, int bstages,
     // Initialize dynamically sized memory for holding results
     std::vector<T> tvec;
     std::vector<T> u;
-    // Allocated temporary arrays on the stack
-    T *ua = (T *)alloca(dim * sizeof T);
-    T *ub = (T *)alloca(dim * sizeof T);
-    T *u_s = (T *)alloca(dim * sizeof T);
-    T *k = (T *)alloca(bstages * dim * sizeof T);
+    // Allocate temporary arrays on the stack
+    T *ua = (T *)alloca(dim * sizeof(T));
+    T *ub = (T *)alloca(dim * sizeof(T));
+    T *u_s = (T *)alloca(dim * sizeof(T));
+    T *k = (T *)alloca(bstages * dim * sizeof(T));
 
     // Initialize
     int numfailures = 0;
@@ -160,8 +164,8 @@ struct results_rkab<T> *rkab(int astages, int bstages,
             }
         }
     }   
-    assert(tvec.size() == numsteps);
-    assert(u.size() == numsteps * dim); 
+    assert(tvec.size() == (size_t)numsteps);
+    assert(u.size() == (size_t)numsteps * dim); 
 
     // Allocate memory dynamically (persists outside function) for results
     T *tarr = new T[numsteps]; // time array
@@ -180,8 +184,8 @@ struct results_rkab<T> *rkab(int astages, int bstages,
 }
 
 
-/* Templates can't extern "C" so I'll manually instantiate and extern all of
-   the objects I want to expose. I'll use macros to help. */
+/* Templates can't extern "C" so I have to manually instantiate and extern all
+   of the objects I want to expose. I'll use macros to help. */
 
 // C-extern results_rkab and destructor under suffixed symbol for type T
 #define EXTERNC_RKAB_RESULTS(T) \
