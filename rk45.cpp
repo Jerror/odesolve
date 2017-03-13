@@ -18,5 +18,5 @@
                  ba##Tid, bb##Tid, a##Tid, c##Tid)
 
 EXTERNC_RK45(double, )
-//EXTERNC_RK45(float, _f)
-//EXTERNC_RK45(long double, _ld)
+EXTERNC_RK45(float, _f)
+EXTERNC_RK45(long double, _ld)

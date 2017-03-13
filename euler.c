@@ -1,4 +1,4 @@
-#include "ode.h"
+#include "euler.h"
 
 void euler(double *u, double *u_init, int dim, int numsteps, 
            double h, double t, derivative_function get_f)

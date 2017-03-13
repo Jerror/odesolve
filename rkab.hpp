@@ -2,7 +2,6 @@
 #ifndef INC_RKAB_hpp // #include guard
 #define INC_RKAB_hpp // ensure this file is only included once
 
-#include "ode.h" // for derivative_function
 #include <assert.h> // for assertions
 #include <alloca.h> // for allocating memory on the stack
 #include <algorithm> // for copy, min, max
@@ -54,7 +53,7 @@ template<typename T, typename tolT>
 struct results_rkab<T> *rkab(int astages, int bstages,
                              const T *ba, const T *bb, const T *a, const T *c,
                              T *u_init, int dim, int maxsteps, tolT tol,
-                             T t, T t_end, derivative_function get_f)
+                             T t, T t_end, void (*get_f)(T, T*, T*))
 {
     assert(astages < bstages);
 
@@ -143,7 +142,7 @@ struct results_rkab<T> *rkab(int astages, int bstages,
                 u_prev = &u.back() - dim;
                 // Adapt the step size; don't increase by a factor > 10
                 h *= std::min((T)10,
-                              0.8 * std::pow(acceptability, 1.0/bstages));
+                              (T)(0.8 * std::pow(acceptability, 1.0/bstages)));
                 break;
             }
             else
@@ -154,7 +153,7 @@ struct results_rkab<T> *rkab(int astages, int bstages,
                     ++numfailures;
                     // Adapt the step size; don't decrease by a factor < 1/2
                     h *= std::max((T)0.5,
-                                  0.8 * std::pow(acceptability, 1.0/bstages));
+                             (T)(0.8 * std::pow(acceptability, 1.0/bstages)));
                 } else { // We underestimated error! Be pessimistic.
                     h *= 0.5;
                 }
@@ -201,7 +200,7 @@ EXTERNC_RKAB_RESULTS(long double, _ld)
 #define EXTERNC_RKAB(name, T, tolT, astages, bstages, ba, bb, a, c) \
     extern "C" results_rkab<T> *name(T *u_init, int dim, int maxsteps,    \
                                      tolT tol, T t, T t_end,              \
-                                     derivative_function get_f)           \
+                                     void (*get_f)(T, T*, T*))            \
     {   return rkab<T, tolT>(astages, bstages, ba, bb, a, c,              \
                              u_init, dim, maxsteps, tol, t, t_end, get_f);}
 // I'll use this in implementation files (eg., 'rk45.cpp', 'rk23.cpp').
