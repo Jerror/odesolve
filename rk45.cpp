@@ -10,11 +10,13 @@
 #define BB {16/135L, 0, 6656/12825L, 28561/56430L, -9/50L, 2/55L}
 
 #define EXTERNC_RK45(T) \
-    EXTERNC_RKAB(rk45_##T, T, T, 4, 5,                 \
-                 &(T *)BA, &(T *)BB, &(T *)A, &(T *)C) \
-    EXTERNC_RKAB(rk45_arrtol_##T, T, T *, 4, 5,        \
-                 &(T *)BA, &(T *)BB, &(T *)A, &(T *)C)
+    const T *ba_##T = (T[])BA, *bb_##T = (T[])BB, \
+            *a_##T = (T[])A, *c_##T = (T[])C;     \
+    EXTERNC_RKAB(rk45_##T, T, T, 4, 5,            \
+                 ba_##T, bb_##T, a_##T, c_##T)    \
+    EXTERNC_RKAB(rk45_arrtol_##T, T, T *, 4, 5,   \
+                 ba_##T, bb_##T, a_##T, c_##T)
 
-EXTERNC_RK45(float)
+//EXTERNC_RK45(float)
 EXTERNC_RK45(double)
-EXTERNC_RK45(ldouble)
+//EXTERNC_RK45(ldouble)
