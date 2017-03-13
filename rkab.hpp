@@ -187,23 +187,21 @@ struct results_rkab<T> *rkab(int astages, int bstages,
 /* Templates can't extern "C" so I have to manually instantiate and extern all
    of the objects I want to expose. I'll use macros to help. */
 
-// C-extern results_rkab and destructor under suffixed symbol for type T
-#define EXTERNC_RKAB_RESULTS(T) \
-    extern "C" typedef results_rkab<T> results_rkab_##T;               \
-    extern "C" void delete_results_rkab_##T(results_rkab<T> *results)  \
+// C-extern delete_rkab_results under suffixed symbol for type T
+#define EXTERNC_RKAB_RESULTS(T, Tid) \
+    extern "C" void delete_results_rkab##Tid(results_rkab<T> *results)  \
     {   delete_results_rkab<T>(results);   }
 
-EXTERNC_RKAB_RESULTS(float)
-EXTERNC_RKAB_RESULTS(double)
-typedef long double ldouble; // One-symbol alias for 80bit float (usually)
-EXTERNC_RKAB_RESULTS(ldouble)
+EXTERNC_RKAB_RESULTS(double, )
+EXTERNC_RKAB_RESULTS(float, _f)
+EXTERNC_RKAB_RESULTS(long double, _ld)
 // complex, MPFR, etc...
 
 // C-extern rkab instance under symbol "name" with types and tableau bound 
 #define EXTERNC_RKAB(name, T, tolT, astages, bstages, ba, bb, a, c) \
-    extern "C" results_rkab_##T *name(T *u_init, int dim, int maxsteps,   \
-                                      tolT tol, T t, T t_end,             \
-                                      derivative_function get_f)          \
+    extern "C" results_rkab<T> *name(T *u_init, int dim, int maxsteps,    \
+                                     tolT tol, T t, T t_end,              \
+                                     derivative_function get_f)           \
     {   return rkab<T, tolT>(astages, bstages, ba, bb, a, c,              \
                              u_init, dim, maxsteps, tol, t, t_end, get_f);}
 // I'll use this in implementation files (eg., 'rk45.cpp', 'rk23.cpp').
