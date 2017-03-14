@@ -30,23 +30,37 @@
 
 //// Expose C-extern interfaces of instantiated functions
 
+#ifdef __cplusplus // if this header was included in a C++ context
+extern "C" { // use C linkage. Forbids symbol mangling (and thus overloading)
+#define RESULTS_RKAB(T, Tid) results_rkab<T> // templated for safe compiling
+#else // included in C context to provide the C interface to the library
+#define TYPEDEF_RESULTS_RKAB(T, Tid) \
+    typedef struct results_rkab##Tid {             \
+        int numsteps; T *t; T *u; int numfailures; \
+    } results_rkab##Tid;
+MAP_TARGETS_TO(TYPEDEF_RESULTS_RKAB) // very sorry about this.
+#define RESULTS_RKAB(T, Tid) results_rkab##Tid // C'est la C
+#endif // Thus this header tells C++ how to compile and C how to use.
+
 // rkab_results.cpp
 #define EXPOSE_DELETE_RKAB_RESULTS(T, Tid) \
-    extern "C" void delete_results_rkab##Tid(results_rkab<T>*);
+    void delete_results_rkab##Tid(RESULTS_RKAB(T, Tid)*);
 
 MAP_TARGETS_TO(EXPOSE_DELETE_RKAB_RESULTS)
 
 //  rk45.cpp
 #define EXPOSE_RK45(T, Tid) \
-    extern "C" results_rkab<T> *rk45##Tid                             \
-                                   (T *u_init, int dim, int maxsteps, \
-                                    T tol, T t, T t_end,              \
-                                    void (*get_f)(T, T*, T*));        \
-    extern "C" results_rkab<T> *rk45_arrtol##Tid                      \
-                                   (T *u_init, int dim, int maxsteps, \
-                                    T *tol, T t, T t_end,             \
-                                    void (*get_f)(T, T*, T*));
+    RESULTS_RKAB(T, Tid) *rk45##Tid                                        \
+                                (T *u_init, int dim, int maxsteps, T tol,  \
+                                 T t, T t_end, void (*get_f)(T, T*, T*));  \
+    RESULTS_RKAB(T, Tid) *rk45_arrtol##Tid                                 \
+                                (T *u_init, int dim, int maxsteps, T *tol, \
+                                 T t, T t_end, void (*get_f)(T, T*, T*));
 
 MAP_TARGETS_TO(EXPOSE_RK45)
+
+#ifdef __cplusplus
+} // closing brace for extern "C"
+#endif
 
 #endif // #include guard

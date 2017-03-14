@@ -1,7 +1,10 @@
 SHELL=zsh
 
 INC_DIR = .
-CFLAGS = -Wall -Winline -I$(INC_DIR) -O3
+CFLAGS = -Wall -Winline -I$(INC_DIR) -O3 -g3
+
+EXEC = valgrind -v 
+# time gdb 
 
 all: libode.so
 
@@ -14,3 +17,13 @@ euler.o: euler.c $(INC_DIR)/euler.h
 
 libode.so: rkab_results.cpp.o rk45.cpp.o euler.o
 	g++ -static-libstdc++ -std=c++11 -shared -Wl,-soname,libode.so -o libode.so euler.o rk45.cpp.o -lc -lm
+
+test/test: test/main.c libode.so
+	- cp libode.so test
+	cd test && \
+	gcc -o test main.c -lode
+
+.PHONY: run_test
+
+run_test: test/test
+	cd test && $(EXEC) ./test
