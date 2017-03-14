@@ -10,7 +10,7 @@ euler.o: euler.c $(INC_DIR)/euler.h
 	gcc -c $(CFLAGS) -std=c99 -Wl,static -fPIC $< -o $@
 
 %.cpp.o: %.cpp $(INC_DIR)/rkab.hpp
-	g++ -c $(CFLAGS) -std=c++11 -Wl,static -fPIC $< -o $@
+	g++ -static-libstdc++ -c $(CFLAGS) -std=c++11 -Wl,static -fPIC $< -o $@
 
 libode.so: rk45.cpp.o euler.o
-	g++ -std=c++11 -shared -Wl,-soname,libode.so -o libode.so euler.o rk45.cpp.o -lc -lm
+	g++ -static-libstdc++ -std=c++11 -shared -Wl,-soname,libode.so -o libode.so euler.o rk45.cpp.o -lc -lm
