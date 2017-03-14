@@ -1,4 +1,5 @@
-#include "rkab.hpp"
+#include "rkab.hpp" // templates
+#include "adaptive_step_rk.h" // interface
 
 #define C {1/4L, 3/8L, 12/13L, 1, 1/2L}
 #define A {1/4L,\
@@ -9,14 +10,14 @@
 #define BA {25/216L, 0, 1408/2565L, 2197/4104L, -1/5L}
 #define BB {16/135L, 0, 6656/12825L, 28561/56430L, -9/50L, 2/55L}
 
-#define EXTERNC_RK45(T, Tid) \
-    const T *ba##Tid = (T[])BA, *bb##Tid = (T[])BB,  \
-            *a##Tid = (T[])A, *c##Tid = (T[])C;      \
-    EXTERNC_RKAB(rk45##Tid, T, T, 4, 5,              \
-                 ba##Tid, bb##Tid, a##Tid, c##Tid)   \
-    EXTERNC_RKAB(rk45_arrtol##Tid, T, T *, 4, 5,     \
-                 ba##Tid, bb##Tid, a##Tid, c##Tid)
+// Instantiate as defined in adaptive_step_rk.h
 
-EXTERNC_RK45(double, )
-EXTERNC_RK45(float, _f)
-EXTERNC_RK45(long double, _ld)
+#define INST_RK45(T, Tid) \
+    const T *ba##Tid = (T[])BA, *bb##Tid = (T[])BB, \
+            *a##Tid = (T[])A, *c##Tid = (T[])C;     \
+    INST_RKAB(Tid, T, T, 4, 5,                      \
+              ba##Tid, bb##Tid, a##Tid, c##Tid)     \
+    INST_RKAB(_arrtol##Tid, T, T *, 4, 5,           \
+              ba##Tid, bb##Tid, a##Tid, c##Tid)
+
+MAP_TARGETS_TO(INST_RK45)
