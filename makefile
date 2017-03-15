@@ -21,9 +21,9 @@ libode.so: rkab_results.cpp.o rk45.cpp.o euler.o
 test/test: test/main.c libode.so
 	- cp libode.so test
 	cd test && \
-	gcc -o test main.c -lode
+	gcc $(CFLAGS) -L./ -o test main.c -lode
 
 .PHONY: run_test
 
 run_test: test/test
-	cd test && $(EXEC) ./test
+	cd test && export LD_LIBRARY_PATH=./; $(EXEC) ./test
