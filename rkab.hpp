@@ -109,7 +109,7 @@ struct results_rkab<T> *rkab(int astages, int bstages,
         while (true)
         {
             // Please study these lines carefully. How do they work?    
-            // (My tableau has leading zeroes dropped and 'a' transposed)
+            // (My tableau has leading zeroes dropped with 'a' transposed)
             fill(haf, haf + (bstages - 1) * dim, 0); // reset temp 'haf' array
             a_k = a; // reset to row k = 0
             get_f(t, u_k, f); // stage 1

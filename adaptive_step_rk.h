@@ -41,22 +41,27 @@ MAP_TARGETS_TO(TYPEDEF_RESULTS_RKAB) // very sorry about this.
 #define RESULTS_RKAB(T, Tid) results_rkab##Tid // C'est la C
 #endif // Thus this header tells C++ how to compile and C how to use.
 
-// rkab_results.cpp
 #define EXPOSE_DELETE_RKAB_RESULTS(T, Tid) \
     void delete_results_rkab##Tid(RESULTS_RKAB(T, Tid)*);
-
+// rkab_results.cpp
 MAP_TARGETS_TO(EXPOSE_DELETE_RKAB_RESULTS)
 
-//  rk45.cpp
-#define EXPOSE_RK45(T, Tid) \
-    RESULTS_RKAB(T, Tid) *rk45##Tid                                        \
+#define EXPOSE_RKAB(AB, T, Tid) \
+    RESULTS_RKAB(T, Tid) *rk##AB##Tid                                      \
                                 (T *u_init, int dim, int maxsteps, T tol,  \
                                  T t, T t_end, void (*get_f)(T, T*, T*));  \
-    RESULTS_RKAB(T, Tid) *rk45_arrtol##Tid                                 \
+    RESULTS_RKAB(T, Tid) *rk##AB##_arrtol##Tid                             \
                                 (T *u_init, int dim, int maxsteps, T *tol, \
                                  T t, T t_end, void (*get_f)(T, T*, T*));
-
+//  rk45.cpp
+#define EXPOSE_RK45(T, Tid) EXPOSE_RKAB(45, T, Tid)
 MAP_TARGETS_TO(EXPOSE_RK45)
+//  rk23.cpp
+#define EXPOSE_RK23(T, Tid) EXPOSE_RKAB(23, T, Tid)
+MAP_TARGETS_TO(EXPOSE_RK23)
+//  rk45.cpp
+#define EXPOSE_RK12(T, Tid) EXPOSE_RKAB(12, T, Tid)
+MAP_TARGETS_TO(EXPOSE_RK12)
 
 #ifdef __cplusplus
 } // closing brace for extern "C"

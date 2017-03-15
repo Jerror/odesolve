@@ -1,3 +1,4 @@
+// Runge-Kutta-Fehlberg method
 #include "rkab.hpp" // templates
 #include "adaptive_step_rk.h" // interface
 
@@ -15,11 +16,11 @@
 // Instantiate as defined in adaptive_step_rk.h
 
 #define INST_RK45(T, Tid) \
-    const T *ba##Tid = (T[])BA, *bb##Tid = (T[])BB, \
-            *a##Tid = (T[])A, *c##Tid = (T[])C;     \
-    INST_RKAB(45##Tid, T, T, 5, 6,                  \
-              ba##Tid, bb##Tid, a##Tid, c##Tid)     \
-    INST_RKAB(45_arrtol##Tid, T, T *, 5, 6,         \
+    static const T *ba##Tid = (T[])BA, *bb##Tid = (T[])BB, \
+                   *a##Tid = (T[])A, *c##Tid = (T[])C;     \
+    INST_RKAB(45##Tid, T, T, 5, 6,                         \
+              ba##Tid, bb##Tid, a##Tid, c##Tid)            \
+    INST_RKAB(45_arrtol##Tid, T, T *, 5, 6,                \
               ba##Tid, bb##Tid, a##Tid, c##Tid)
 
 MAP_TARGETS_TO(INST_RK45)
