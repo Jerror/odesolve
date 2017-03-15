@@ -86,12 +86,9 @@ struct results_rkab<T> *rkab(int astages, int bstages,
     int t_dir = (t_end >= t) ? 1 : -1;
     h *= t_dir;
 
-    cout << "dir: " << t_dir << " h: " << h << " N: " << maxsteps << endl;
-
     // Main loop
     while (numsteps < maxsteps && t_dir * (t_end - t) > 0)
     {
-        cout << t;
         bool failures = false;
         T hmin = 16 * boost::math::ulp(t);
         // hmin is the minimum meaningful magnitude of h
@@ -163,7 +160,6 @@ struct results_rkab<T> *rkab(int astages, int bstages,
             }
         }
     }   
-    cout << "u size: " << u.size() << " dim * numsteps: " << dim * numsteps << endl;
     assert(tvec.size() == (size_t)numsteps);
     assert(u.size() == (size_t)numsteps * dim); 
 
