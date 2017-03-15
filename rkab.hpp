@@ -9,6 +9,8 @@
 #include <type_traits> // for is_pointer
 #include <vector> // for vectors (dynamic size arrays)
 #include <cmath> // for abs, pow
+#include <iostream> // for debugging
+using namespace std;
 
 
 template<typename T>
@@ -31,9 +33,9 @@ void delete_results_rkab(results_rkab<T> *results)
 template<typename T>
 T acceptability_rel(int dim, T *ya, T *yb, T tol) // scalar tolerance
 {
-    T acc = std::numeric_limits<T>::infinity();
+    T acc = numeric_limits<T>::infinity();
     for (int i = 0; i < dim; ++i) {
-        acc = std::min(acc, std::abs(tol * yb[i] / (ya[i] - yb[i])));
+        acc = min(acc, abs(tol * yb[i] / (ya[i] - yb[i])));
     }
     return acc;
 }
@@ -41,9 +43,9 @@ T acceptability_rel(int dim, T *ya, T *yb, T tol) // scalar tolerance
 template<typename T>
 T acceptability_rel(int dim, T *ya, T *yb, T *tol)
 {
-    T acc = std::numeric_limits<T>::infinity();
+    T acc = numeric_limits<T>::infinity();
     for (int i = 0; i < dim; ++i) {
-        acc = std::min(acc, std::abs(tol[i] * yb[i] / (ya[i] - yb[i])));
+        acc = min(acc, abs(tol[i] * yb[i] / (ya[i] - yb[i])));
     }
     return acc;
 }
@@ -57,40 +59,43 @@ struct results_rkab<T> *rkab(int astages, int bstages,
     assert(astages < bstages);
 
     // Initialize dynamically sized memory for holding results
-    std::vector<T> tvec;
-    std::vector<T> u;
+    vector<T> tvec;
+    vector<T> u;
     // Allocate temporary arrays on the stack
     T *ua = (T *)alloca(dim * sizeof(T));
     T *ub = (T *)alloca(dim * sizeof(T));
     T *u_s = (T *)alloca(dim * sizeof(T));
+    T *u_prev = (T *)alloca(dim * sizeof(T)); // for easy re-init on failure
     T *k = (T *)alloca(bstages * dim * sizeof(T));
 
     // Initialize
     int numfailures = 0;
     int numsteps = 0;
-    std::copy(u_init, u_init + dim, ua);
-    std::copy(u_init, u_init + dim, ub);
-    std::copy(u_init, u_init + dim, u_s);
+    copy(u_init, u_init + dim, ua);
+    copy(u_init, u_init + dim, ub);
+    copy(u_init, u_init + dim, u_s);
+    copy(u_init, u_init + dim, u_prev);
 
     // I'll advance and dereference these aliases, rather than index arrays
     T *kk = k;
     const T *aa = a;
-    // This pointer will make it easier to reset temporary arrays on failure
-    T *u_prev = u_init;
 
     // Guess an initial step size
-    T h = std::min(std::abs(t_end - t)/10, (T)0.1);
+    T h = min(abs(t_end - t)/10, (T)0.1);
     // Choose the sign of h according to the direction of propagation
     int t_dir = (t_end >= t) ? 1 : -1;
     h *= t_dir;
 
+    cout << "dir: " << t_dir << " h: " << h << " N: " << maxsteps << endl;
+
     // Main loop
     while (numsteps < maxsteps && t_dir * (t_end - t) > 0)
     {
+        cout << t;
         bool failures = false;
         T hmin = 16 * boost::math::ulp(t);
         // hmin is the minimum meaningful magnitude of h
-        if (std::abs(h) < hmin) { // std::abs(h) should be >= hmin
+        if (abs(h) < hmin) { // abs(h) should be >= hmin
             h = t_dir * hmin;
         }
         // But make sure to hit the last step exactly
@@ -118,7 +123,7 @@ struct results_rkab<T> *rkab(int astages, int bstages,
                     get_f(t + h * c[s], u_s, kk);            
                     ++aa;
                 }
-                std::copy(u_prev, u_prev + dim, u_s);
+                copy(u_prev, u_prev + dim, u_s);
             }
             for (int i = 0; i < dim; ++i){ // finish last stage
                 ub[i] += h * bb[bstages - 1] * kk[i]; 
@@ -133,15 +138,12 @@ struct results_rkab<T> *rkab(int astages, int bstages,
                 ++numsteps;
                 t += h;
                 tvec.push_back(t);
-                std::copy(ub, ub + dim, ua);
-                std::copy(ub, ub + dim, u_s);
-                // This should be the only place I append to u
-                u.assign(ub, ub + dim);
-                // because this pointer dies when the vector needs more memory
-                u_prev = &u.back() - dim;
+                copy(ub, ub + dim, ua);
+                copy(ub, ub + dim, u_s);
+                copy(ub, ub + dim, u_prev);
+                u.insert(u.end(), ub, ub + dim);
                 // Adapt the step size; don't increase by a factor > 10
-                h *= std::min((T)10,
-                              (T)(0.8 * std::pow(acceptability, 1.0/bstages)));
+                h *= min((T)10, (T)(0.8 * pow(acceptability, 1.0/bstages)));
                 break;
             }
             else
@@ -151,17 +153,17 @@ struct results_rkab<T> *rkab(int astages, int bstages,
                     failures = true;
                     ++numfailures;
                     // Adapt the step size; don't decrease by a factor < 1/2
-                    h *= std::max((T)0.5,
-                             (T)(0.8 * std::pow(acceptability, 1.0/bstages)));
+                    h *= max((T)0.5, (T)(0.8*pow(acceptability, 1.0/bstages)));
                 } else { // We underestimated error! Be pessimistic.
                     h *= 0.5;
                 }
-                std::copy(u_prev, u_prev + dim, ua);
-                std::copy(u_prev, u_prev + dim, ub);
-                std::copy(u_prev, u_prev + dim, u_s);
+                copy(u_prev, u_prev + dim, ua);
+                copy(u_prev, u_prev + dim, ub);
+                copy(u_prev, u_prev + dim, u_s);
             }
         }
     }   
+    cout << "u size: " << u.size() << " dim * numsteps: " << dim * numsteps << endl;
     assert(tvec.size() == (size_t)numsteps);
     assert(u.size() == (size_t)numsteps * dim); 
 
@@ -176,8 +178,8 @@ struct results_rkab<T> *rkab(int astages, int bstages,
     };
     // Copy time and u data from the vectors.
     //  Can't return vectors directly because I want a C-compatible interface.
-    std::copy(tvec.begin(), tvec.end(), tarr);
-    std::copy(u.begin(), u.end(), uarr);
+    copy(tvec.begin(), tvec.end(), tarr);
+    copy(u.begin(), u.end(), uarr);
     return results;
 }
 
