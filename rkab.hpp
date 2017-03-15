@@ -3,13 +3,13 @@
 
 #include <assert.h> // for assertions
 #include <alloca.h> // for allocating memory on the stack
-#include <algorithm> // for copy, min, max
+#include <algorithm> // for copy, min, max, fill
 #include <boost/math/special_functions/ulp.hpp> // for ulp (MATLAB's eps)
 #include <limits> // for numeric_limits
 #include <type_traits> // for is_pointer
 #include <vector> // for vectors (dynamic size arrays)
 #include <cmath> // for abs, pow
-#include <iostream> // for debugging
+//#include <iostream> // for debugging
 using namespace std;
 
 
@@ -25,27 +25,27 @@ struct results_rkab
 template<typename T>
 void delete_results_rkab(results_rkab<T> *results)
 {
-    delete results->t;
-    delete results->u;
+    delete [] results->t;
+    delete [] results->u;
     delete results;
 }
 
 template<typename T>
-T acceptability_rel(int dim, T *ya, T *yb, T tol) // scalar tolerance
+T acceptability_rel(int dim, T *ua, T *ub, T tol) // scalar tolerance
 {
     T acc = numeric_limits<T>::infinity();
     for (int i = 0; i < dim; ++i) {
-        acc = min(acc, abs(tol * yb[i] / (ya[i] - yb[i])));
+        acc = min(acc, abs(tol * ub[i] / (ua[i] - ub[i])));
     }
     return acc;
 }
 // Overload for an array of tolerances for each component of u
 template<typename T>
-T acceptability_rel(int dim, T *ya, T *yb, T *tol)
+T acceptability_rel(int dim, T *ua, T *ub, T *tol)
 {
     T acc = numeric_limits<T>::infinity();
     for (int i = 0; i < dim; ++i) {
-        acc = min(acc, abs(tol[i] * yb[i] / (ya[i] - yb[i])));
+        acc = min(acc, abs(tol[i] * ub[i] / (ua[i] - ub[i])));
     }
     return acc;
 }
@@ -61,24 +61,25 @@ struct results_rkab<T> *rkab(int astages, int bstages,
     // Initialize dynamically sized memory for holding results
     vector<T> tvec;
     vector<T> u;
-    // Allocate temporary arrays on the stack
-    T *ua = (T *)alloca(dim * sizeof(T));
-    T *ub = (T *)alloca(dim * sizeof(T));
-    T *u_s = (T *)alloca(dim * sizeof(T));
-    T *u_prev = (T *)alloca(dim * sizeof(T)); // for easy re-init on failure
-    T *k = (T *)alloca(bstages * dim * sizeof(T));
+    // Allocate temporary arrays. On heap for safety; don't forget to delete!
+    T *ua = new T[dim];
+    T *ub = new T[dim];
+    T *u_k = new T[dim];
+    T *u_prev = new T[dim]; // for easy re-init on failure
+    T *f = new T[bstages * dim];
+    T *haf = new T[dim * (bstages - 1)];
 
     // Initialize
     int numfailures = 0;
     int numsteps = 0;
     copy(u_init, u_init + dim, ua);
     copy(u_init, u_init + dim, ub);
-    copy(u_init, u_init + dim, u_s);
+    copy(u_init, u_init + dim, u_k);
     copy(u_init, u_init + dim, u_prev);
 
-    // I'll advance and dereference these aliases, rather than index arrays
-    T *kk = k;
-    const T *aa = a;
+    // 'a' is a flattened sparse rep of a triangular matrix; I'll iterate
+    //  through its elements by advancing this pointer.
+    const T *a_k = a;
 
     // Guess an initial step size
     T h = min(abs(t_end - t)/10, (T)0.1);
@@ -96,7 +97,7 @@ struct results_rkab<T> *rkab(int astages, int bstages,
             h = t_dir * hmin;
         }
         // But make sure to hit the last step exactly
-        if (h - t_end - t < 0){
+        if (t_dir * (t_end - t - h) < 0){
             h = t_end - t;
         }
         
@@ -104,40 +105,42 @@ struct results_rkab<T> *rkab(int astages, int bstages,
         while (true)
         {
             // Please study these lines carefully. How do they work?    
-            get_f(t, u_s, kk); // stage 1
-            for (int s = 1; s < bstages; ++s){ // stages 2 through last
-                for (int j = 0; j < s; ++j){
-                    for (int i = 0; i < dim; ++i)
-                    {
-                        u_s[i] += h * *aa * *kk;
-                        // Update ua[i] and ub[i] now since *kk is on register
-                        ub[i] += h * bb[s - 1] * *kk;
-                        if (s <= astages){
-                            ua[i] += h * ba[s - 1] * *kk;
-                        }
-                        ++kk;
+            // (My tableau has leading zeroes dropped and 'a' transposed)
+            fill(haf, haf + (bstages - 1) * dim, 0); // reset temp 'haf' array
+            a_k = a; // reset to row k = 0
+            get_f(t, u_k, f); // stage 1
+            for (int k = 0; k < bstages - 1; ++k) // stages 2 through last
+            { 
+                for (int i = 0; i < dim; ++i){
+                    T hf_ki = h * f[k * dim + i];
+                    // Update ua[i] and ub[i] now since hf_ki computed
+                    ub[i] += bb[k] * hf_ki;
+                    if (k < astages){ // Likely always true and optimized out
+                        ua[i] += ba[k] * hf_ki;
                     }
-                    get_f(t + h * c[s], u_s, kk);            
-                    ++aa;
+                    for (int j = k; j < bstages - 1; ++j){
+                        haf[i*(bstages - 1) + j] += hf_ki * a_k[j - k];
+                    } 
+                    u_k[i] = u_prev[i] + haf[i*(bstages - 1) + k];    
                 }
-                copy(u_prev, u_prev + dim, u_s);
+                get_f(t + h * c[k], u_k, &f[(k + 1) * dim]);            
+                a_k += bstages - 1 - k; // advance to next row
             }
             for (int i = 0; i < dim; ++i){ // finish last stage
-                ub[i] += h * bb[bstages - 1] * kk[i]; 
+                ub[i] += h * bb[bstages - 1] * f[(bstages - 1) * dim + i]; 
             } // Note: I asserted astages < bstages, so ua is already complete.
-            kk = k; aa = a;
 
             // acceptability = (tolerance) / (relative error)
             T acceptability = acceptability_rel(dim, ua, ub, tol);            
             // If the step is acceptable or the step size is minimal
-            if (acceptability > 1 || h <= hmin)
+            if (acceptability > 1 || abs(h) <= hmin)
             { // Accept the step
                 ++numsteps;
                 t += h;
                 tvec.push_back(t);
                 copy(ub, ub + dim, ua);
-                copy(ub, ub + dim, u_s);
                 copy(ub, ub + dim, u_prev);
+                copy(ub, ub + dim, u_k);
                 u.insert(u.end(), ub, ub + dim);
                 // Adapt the step size; don't increase by a factor > 10
                 h *= min((T)10, (T)(0.8 * pow(acceptability, 1.0/bstages)));
@@ -156,7 +159,7 @@ struct results_rkab<T> *rkab(int astages, int bstages,
                 }
                 copy(u_prev, u_prev + dim, ua);
                 copy(u_prev, u_prev + dim, ub);
-                copy(u_prev, u_prev + dim, u_s);
+                copy(u_prev, u_prev + dim, u_k);
             }
         }
     }   
@@ -176,6 +179,16 @@ struct results_rkab<T> *rkab(int astages, int bstages,
     //  Can't return vectors directly because I want a C-compatible interface.
     copy(tvec.begin(), tvec.end(), tarr);
     copy(u.begin(), u.end(), uarr);
+    
+    // delete temporary arrays
+    delete [] ua;
+    delete [] ub;
+    delete [] u_k;
+    delete [] u_prev;
+    delete [] f;
+    delete [] haf;
+    // vectors are RAII; they'll be deleted automatically.
+
     return results;
 }
 
