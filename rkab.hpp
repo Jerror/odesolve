@@ -57,6 +57,10 @@ struct results_rkab<T> *rkab(int astages, int bstages,
                              T t, T t_end, void (*get_f)(T, T*, T*))
 {
     assert(astages < bstages);
+    // Set some resonable acceptance patterns
+    const T acc_scale = pow(0.9, bstages);
+    const T max_adapt = 10;
+    const T min_adapt = 0.5;
 
     // Initialize dynamically sized memory for holding results
     vector<T> tvec;
@@ -131,7 +135,7 @@ struct results_rkab<T> *rkab(int astages, int bstages,
             } // Note: I asserted astages < bstages, so ua is already complete.
 
             // acceptability = (tolerance) / (relative error)
-            T acceptability = acceptability_rel(dim, ua, ub, tol);            
+            T acceptability = acc_scale * acceptability_rel(dim, ua, ub, tol);
             // If the step is acceptable or the step size is minimal
             if (acceptability > 1 || abs(h) <= hmin)
             { // Accept the step
@@ -142,8 +146,8 @@ struct results_rkab<T> *rkab(int astages, int bstages,
                 copy(ub, ub + dim, u_prev);
                 copy(ub, ub + dim, u_k);
                 u.insert(u.end(), ub, ub + dim);
-                // Adapt the step size; don't increase by a factor > 10
-                h *= min((T)10, (T)(0.8 * pow(acceptability, 1.0/bstages)));
+                // Adapt step size; don't increase by a factor > max_adapt
+                h *= min(max_adapt, (T)(pow(acceptability, 1.0/bstages)));
                 break;
             }
             else
@@ -152,10 +156,10 @@ struct results_rkab<T> *rkab(int astages, int bstages,
                 {
                     failures = true;
                     ++numfailures;
-                    // Adapt the step size; don't decrease by a factor < 1/2
-                    h *= max((T)0.5, (T)(0.8*pow(acceptability, 1.0/bstages)));
+                    // Adapt step size; don't decrease by a factor < min_adapt
+                    h *= max(min_adapt, (T)(pow(acceptability, 1.0/bstages)));
                 } else { // We underestimated error! Be pessimistic.
-                    h *= 0.5;
+                    h *= min_adapt;
                 }
                 copy(u_prev, u_prev + dim, ua);
                 copy(u_prev, u_prev + dim, ub);
@@ -170,10 +174,10 @@ struct results_rkab<T> *rkab(int astages, int bstages,
     T *tarr = new T[numsteps]; // time array
     T *uarr = new T[numsteps * dim]; // u array
     results_rkab<T> *results = new results_rkab<T> { 
-        numfailures,
+        numsteps,
         tarr, // pointer
         uarr, // pointer
-        numsteps
+        numfailures
     };
     // Copy time and u data from the vectors.
     //  Can't return vectors directly because I want a C-compatible interface.

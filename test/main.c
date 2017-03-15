@@ -22,10 +22,12 @@ int main()
     for (int n = 0; n < maxsteps; ++n){
         printf("%.4e: (%.4e, %.4e)\n", tstart + h*(n+1), u[2*n], u[2*n+1]);
     }
+    free(u);
     
-    results_rkab *res = rk45(u0, 2, maxsteps, 1e-3, tstart, tend, get_f_sho);
+    results_rkab *res = rk45(u0, 2, maxsteps, 1e-6, tstart, tend, get_f_sho);
     printf("%d, %d\n", res->numsteps, res->numfailures);
     for (int n = 0; n < res->numsteps; ++n){
         printf("%.4e: (%.4e, %.4e)\n", res->t[n], res->u[2*n], res->u[2*n+1]);
     }
+    delete_results_rkab(res);
 }

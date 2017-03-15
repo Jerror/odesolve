@@ -16,7 +16,7 @@ euler.o: euler.c $(INC_DIR)/euler.h
 	g++ -static-libstdc++ -c $(CFLAGS) -std=c++11 -Wl,static -fPIC $< -o $@
 
 libode.so: rkab_results.cpp.o rk45.cpp.o euler.o
-	g++ -static-libstdc++ -std=c++11 -shared -Wl,-soname,libode.so -o libode.so euler.o rk45.cpp.o -lc -lm
+	g++ -static-libstdc++ -std=c++11 -shared -Wl,-soname,libode.so -o libode.so euler.o rk45.cpp.o rkab_results.cpp.o -lc -lm
 
 test/test: test/main.c libode.so
 	- cp libode.so test
