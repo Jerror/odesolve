@@ -1,14 +1,28 @@
 /* Templates can't extern "C" so I have to manually instantiate and extern all
-   of the objects I want to expose. I'll use macros to help. */
+   of the objects I want to expose. I'll use macros to help. This header is
+   meant to be included at library compile-time by C++ source to produce the
+   C-compatible interface, and included at program compile-time by C to define
+   that interface. */
 #ifndef INC_ADAPTIVE_STEP_RK_h // #include guard
 #define INC_ADAPTIVE_STEP_RK_h // ensure this is included at most once per unit
 
 // Map macro functions of the form F(T, Tid) to target types and type IDs
 #define MAP_TARGETS_TO(F) \
-    F(double, )           \
     F(float, _f)          \
-    F(long double, _ld)
-// complex, MPFR, etc...
+    F(double, _d)         \
+    F(long double, _g)    \
+    F(double, )
+//  complex, MPFR, etc...
+// The naming convention matches the Numpy C-compatible dtype character codes.
+// The last target simply provides a suffix-free alias for double-precision
+//  types and methods (double is the "default").
+/* For posterity: a C-incompatible type could be used through a C++ API via:
+     ...
+      F(C_incompatible_type, _suffix)
+  #ifndef __cplusplus
+  typedef struct C_incompatible_type C_incompatible_type;
+  #endif */
+
 
 //// Macros for implementation
 
@@ -29,21 +43,23 @@
 
 //// Expose C-extern interfaces of instantiated functions
 
-#ifdef __cplusplus // if this header was included in a C++ context
+#ifndef __cplusplus 
+    // We're included in a C context to define the library interface.
+    #define TYPEDEF_RESULTS_RKAB(T, Tid) \
+        typedef struct results_rkab##Tid {             \
+            int numsteps; T *t; T *u; int numfailures; \
+        } results_rkab##Tid;
+    MAP_TARGETS_TO(TYPEDEF_RESULTS_RKAB) // very sorry about this.
+    #define RESULTS_RKAB(T, Tid) results_rkab##Tid // C'est la C
+#else
+// We're included in a C++ context for library compilation.
+#define RESULTS_RKAB(T, Tid) results_rkab<T> // use the structure template
 extern "C" { // use C linkage. Forbids symbol mangling (and thus overloading)
-#define RESULTS_RKAB(T, Tid) results_rkab<T> // templated for safe compiling
-#else // included in C context to provide the C interface to the library
-#define TYPEDEF_RESULTS_RKAB(T, Tid) \
-    typedef struct results_rkab##Tid {             \
-        int numsteps; T *t; T *u; int numfailures; \
-    } results_rkab##Tid;
-MAP_TARGETS_TO(TYPEDEF_RESULTS_RKAB) // very sorry about this.
-#define RESULTS_RKAB(T, Tid) results_rkab##Tid // C'est la C
-#endif // Thus this header tells C++ how to compile and C how to use.
+#endif
 
 #define EXPOSE_DELETE_RKAB_RESULTS(T, Tid) \
     void delete_results_rkab##Tid(RESULTS_RKAB(T, Tid)*);
-// rkab_results.cpp
+// for rkab_results.cpp
 MAP_TARGETS_TO(EXPOSE_DELETE_RKAB_RESULTS)
 
 #define EXPOSE_RKAB(AB, T, Tid) \
@@ -53,13 +69,13 @@ MAP_TARGETS_TO(EXPOSE_DELETE_RKAB_RESULTS)
     RESULTS_RKAB(T, Tid) *rk##AB##_arrtol##Tid                             \
                                 (T *u_init, int dim, int maxsteps, T *tol, \
                                  T t, T t_end, void (*get_f)(T, T*, T*));
-//  rk45.cpp
+//  for rk45.cpp
 #define EXPOSE_RK45(T, Tid) EXPOSE_RKAB(45, T, Tid)
 MAP_TARGETS_TO(EXPOSE_RK45)
-//  rk23.cpp
+//  for rk23.cpp
 #define EXPOSE_RK23(T, Tid) EXPOSE_RKAB(23, T, Tid)
 MAP_TARGETS_TO(EXPOSE_RK23)
-//  rk45.cpp
+//  for rk45.cpp
 #define EXPOSE_RK12(T, Tid) EXPOSE_RKAB(12, T, Tid)
 MAP_TARGETS_TO(EXPOSE_RK12)
 
