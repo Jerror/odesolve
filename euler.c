@@ -1,4 +1,5 @@
-/** @brief Euler method implementation file
+/** @file 
+ * @brief Euler method implementation file
  * @author Jeremiah O'Neil
  * @copyright GNU Public License. */
 #include "euler.h"

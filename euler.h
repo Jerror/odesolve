@@ -1,4 +1,5 @@
-/** @brief Euler method interface header
+/** @file 
+ * @brief Euler method interface header
  * @author Jeremiah O'Neil
  * @copyright GNU Public License. */
 #ifndef INC_EULER_h // #include guard

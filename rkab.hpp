@@ -1,9 +1,10 @@
-/** @brief Templates for adaptive step size Runge-Kutta solver.
- * @details Provides a template "rkab<T, tolT>" for adaptive Runge-Kutta
- * functions of arbitrary Butcher tableau, floating-point compatible 
- * data type "T", and tolerance type "tolT" (accepts either T or T*).
- * Provides templates for the return type of rkab<T, tolT> and its API, and
- * templates for any auxilliary functions used by rkab.
+/** @file
+ * @brief Templates for adaptive step size Runge-Kutta solver.
+ * @details Provides a template rkab() for adaptive Runge-Kutta functions of
+ * arbitrary Butcher tableau and floating-point compatible data type, which
+ * accept tolerance as either a number or an array.
+ * Provides templates for the return type of rkab() and its API, and
+ * templates for auxilliary functions used by rkab().
  * @author Jeremiah O'Neil
  * @copyright GNU Public License. */
 #ifndef INC_RKAB_hpp // #include guard
@@ -22,6 +23,7 @@ using namespace std;
 
 /** @brief Structure template for the return type of adaptive step size 
  * Runge-Kutta methods.
+ * @remark The destructor is defined separately; see delete_results_rkab().
  * @tparam T Floating-point compatible data type. */
 template<typename T>
 struct results_rkab
@@ -36,9 +38,9 @@ struct results_rkab
     int numfailures;
 };
 
-/** @brief Function template for deleting results_rkab<T> instances.
- * @details Essentially the destructor of results_rkab<T>, separated from
- * the structure to enable C programs to handle the memory via callback. */
+/** @brief Function template for deleting results_rkab instances.
+ * @details The destructor of results_rkab, separated from the structure
+ * for C programs to release the memory via callback. */
 template<typename T>
 void delete_results_rkab(results_rkab<T> *results)
 {
@@ -89,13 +91,15 @@ T acceptability_rel(int dim, T *ua, T *ub, T *tol)
 }
     
 /** @brief Function template for adaptive step size Runge-Kutta methods.
- * @details Bind astages, bstages, and the extended Butcher tableau defined by
- * arrays 'ba', 'bb', 'a' and 'c' to define a particular method -- where with 
- * respect to a standard tableau, 'a' is expected to be transposed and
- * flattened with the zero half removed and 'ba' and 'c' to have the trailing
- * and leading zeroes respectively removed. Dynamically allocates memory for
- * the solution and returns a pointer to a results_rkab<T> instance containing
- * that solution.
+ * @details Solves a given system over parameterized domain to given relative
+ * tolerance in local error. Dynamically allocates memory for the solution and
+ * returns a pointer to a results_rkab instance containing that solution.
+ * @param astages,bstages,ba,bb,a,c Modified extended Butcher tableau to be
+ * bound on instantiation, defining a particular method. In relation to a
+ * standard extended Butcher tableau, 'a' is expected to be transposed and
+ * flattened with the  zero half removed and 'ba' and 'c' to have the trailing
+ * and leading zeroes respectively removed. 'astages' and 'bstages' are the
+ * number of stages of the low- and high-order methods respectively.
  * @param u_init The initial state array of the system.
  * @param dim The dimension of the system.
  * @param maxsteps The maximum number of iterations to run.
@@ -106,9 +110,9 @@ T acceptability_rel(int dim, T *ua, T *ub, T *tol)
  * @param get_f A callback function get_f(t, *u_t, *f) which writes the
  * derivative of u at system parameter t and state u_t to array f.
  * @tparam T Floating-point compatible data type.
- * @tparam Ttol Tolerance type: should be T (scalar) or T* (array). */
+ * @tparam Ttol Tolerance type: should be (scalar) T or (array) T*. */
 template<typename T, typename tolT>
-struct results_rkab<T> *rkab(int astages, int bstages,
+struct results_rkab<T> *rkab(const int astages, const int bstages,
                              const T *ba, const T *bb, const T *a, const T *c,
                              T *u_init, int dim, int maxsteps, tolT tol,
                              T t, T t_end, void (*get_f)(T, T*, T*))

@@ -1,4 +1,5 @@
-/** @brief Adaptive step size Runge-Kutta interface
+/** @file
+ * @brief Adaptive step size Runge-Kutta interface
  * @details Templates can't extern "C" so I have to manually instantiate and 
  * extern all of the objects I want to expose. I'll use macros to help. This 
  * header is meant to be included at library compile-time by C++ source to 
@@ -36,8 +37,8 @@
     {   delete_results_rkab<T>(results);   }
 
 /** @brief Instantiate rkab under suffixed symbol with types and tableau bound
- * @details I'll use this in implementation files (eg., 'rk45.cpp', 'rk23.cpp') through
- * MAP_TARGETS_TO(). astages and bstages must be literal integers! */
+ * @details I'll use this in implementation files (eg., 'rk45.cpp', 'rk23.cpp')
+ * through MAP_TARGETS_TO(). */
 #define INST_RKAB(sfx, T, tolT, astages, bstages, ba, bb, a, c) \
     results_rkab<T> *rk##sfx(T *u_init, int dim, int maxsteps, tolT tol,  \
                              T t, T t_end, void (*get_f)(T, T*, T*))      \
@@ -45,6 +46,7 @@
                              u_init, dim, maxsteps, tol, t, t_end, get_f);}
 
 // Expose C-extern interfaces of instantiated functions
+// @cond EXPOSE
 
 #ifndef __cplusplus 
     // We're included in a C context to define the library interface.
@@ -52,8 +54,9 @@
         typedef struct results_rkab##Tid {             \
             int numsteps; T *t; T *u; int numfailures; \
         } results_rkab##Tid;
-    MAP_TARGETS_TO(TYPEDEF_RESULTS_RKAB) // very sorry about this.
-    #define RESULTS_RKAB(T, Tid) results_rkab##Tid // C'est la C
+    MAP_TARGETS_TO(TYPEDEF_RESULTS_RKAB)
+    // Very sorry about this. C'est la C.
+    #define RESULTS_RKAB(T, Tid) results_rkab##Tid
 #else
 // We're included in a C++ context for library compilation.
 #define RESULTS_RKAB(T, Tid) results_rkab<T> // use the structure template
@@ -86,4 +89,5 @@ MAP_TARGETS_TO(EXPOSE_RK12)
 } // closing brace for extern "C"
 #endif
 
+// @endcond
 #endif // #include guard
