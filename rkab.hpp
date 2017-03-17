@@ -1,3 +1,9 @@
+/** @brief Templates for adaptive step size Runge-Kutta solver.
+ * @details Provides a template "rkab<T, tolT>" for adaptive Runge-Kutta
+ * functions of arbitrary Butcher tableau, floating-point compatible 
+ * data type "T", and tolerance type "tolT" (accepts either T or T*).
+ * Provides templates for the return type of rkab<T, tolT> and its API, and
+ * templates for any auxilliary functions used by rkab.*/
 #ifndef INC_RKAB_hpp // #include guard
 #define INC_RKAB_hpp // ensure this file is included at most once per unit
 
@@ -9,10 +15,15 @@
 #include <type_traits> // for is_pointer
 #include <vector> // for vectors (dynamic size arrays)
 #include <cmath> // for abs, pow
-//#include <iostream> // for debugging
 using namespace std;
 
 
+/** @brief Structure template for the return type of adaptive step size 
+ * Runge-Kutta methods.
+ * @details Holds the number of accepted steps "numsteps", the number of 
+ * steps where a failure occured "numfailures", and pointers to the
+ * solution trajectory *u and the corresponding parameter array *t.
+ * @tparam T The data type of the trajectory and parameter, eg., double. */
 template<typename T>
 struct results_rkab
 {
@@ -22,6 +33,9 @@ struct results_rkab
     int numfailures;
 };
 
+/** @brief Function template for deleting results_rkab<T> instances.
+ * @details Essentially the destructor of results_rkab<T>, separated from
+ * the structure to enable C programs to handle the memory via callback. */
 template<typename T>
 void delete_results_rkab(results_rkab<T> *results)
 {
@@ -30,8 +44,12 @@ void delete_results_rkab(results_rkab<T> *results)
     delete results;
 }
 
+/** @brief Function template for calculating relative acceptability for scalar
+ * tolerance.
+ * @details I define acceptability as the minimum over all elements of the
+ * ratio of tolerance to error. */
 template<typename T>
-T acceptability_rel(int dim, T *ua, T *ub, T tol) // scalar tolerance
+T acceptability_rel(int dim, T *ua, T *ub, T tol)
 {
     T acc = numeric_limits<T>::infinity();
     for (int i = 0; i < dim; ++i) {
@@ -39,7 +57,11 @@ T acceptability_rel(int dim, T *ua, T *ub, T tol) // scalar tolerance
     }
     return acc;
 }
-// Overload for an array of tolerances for each component of u
+
+/** @brief Function template for calculating relative acceptability for an array
+ * of tolerances.
+ * @details Overload of the scalar method for "tol" a pointer type, assumedly to
+ * an array of tolerances, one for each component of u. */
 template<typename T>
 T acceptability_rel(int dim, T *ua, T *ub, T *tol)
 {
@@ -50,6 +72,18 @@ T acceptability_rel(int dim, T *ua, T *ub, T *tol)
     return acc;
 }
     
+/** @brief Function template for adaptive step size Runge-Kutta methods.
+ * @details Bind astages, bstages, and the extended Butcher tableau defined by
+ * arrays 'ba', 'bb', 'a' and 'c' to define a particular method -- where with 
+ * respect to a standard tableau, 'a' is expected to be transposed and
+ * flattened with the zero half removed and 'ba' and 'c' to have the trailing
+ * and leading zeroes respectively removed. Dynamically allocates memory for
+ * the solution and returns a pointer to a results_rkab<T> instance containing
+ * that solution.
+ * @arg get_f A callback function get_f(t, *u_t, *f) which writes the
+ * derivative of u at time t and array u_t to array f.
+ * @tparam T Floating-point compatible data type.
+ * @tparam Ttol Tolerance type: should be T (scalar) or T* (array). */
 template<typename T, typename tolT>
 struct results_rkab<T> *rkab(int astages, int bstages,
                              const T *ba, const T *bb, const T *a, const T *c,
