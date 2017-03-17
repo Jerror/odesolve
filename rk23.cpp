@@ -1,8 +1,9 @@
-// Bogacki-Shampine method
+/// Bogacki-Shampine method: adaptive step Runge-Kutta implementation
+/// I'm providing a C interface; see adaptive_step_rk.h for details.
 #include "rkab.hpp" // templates
 #include "adaptive_step_rk.h" // interface
 
-// Vs Butcher tableau: trailing zeroes removed
+// Modified Butcher tableau: trailing zeroes removed
 // Additionally, A is transposed and flattened: convenient for C/C++ iteration.
 #define A {1/2.L,   0,  2/9.L,\
                  3/4.L, 1/3.L,\

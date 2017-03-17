@@ -1,12 +1,13 @@
-/* Templates can't extern "C" so I have to manually instantiate and extern all
-   of the objects I want to expose. I'll use macros to help. This header is
-   meant to be included at library compile-time by C++ source to produce the
-   C-compatible interface, and included at program compile-time by C to define
-   that interface. */
+/** @brief Adaptive step size Runge-Kutta interface
+ * @details Templates can't extern "C" so I have to manually instantiate and 
+ * extern all of the objects I want to expose. I'll use macros to help. This 
+ * header is meant to be included at library compile-time by C++ source to 
+ * produce the C-compatible interface, and included at program compile-time by 
+ * C to define that interface. */
 #ifndef INC_ADAPTIVE_STEP_RK_h // #include guard
 #define INC_ADAPTIVE_STEP_RK_h // ensure this is included at most once per unit
 
-// Map macro functions of the form F(T, Tid) to target types and type IDs
+/// Map macro functions of the form F(T, Tid) to target types and type IDs
 #define MAP_TARGETS_TO(F) \
     F(float, _f)          \
     F(double, _d)         \
@@ -24,24 +25,24 @@
   #endif */
 
 
-//// Macros for implementation
+// Macros for implementation
 
-// To instantiate delete_rkab_results under suffixed symbol for type T
+/** @brief Instantiate delete_rkab_results under suffixed symbol for type T
+ * @details I'll use this in rkab_results.cpp through MAP_TARGETS_TO().*/
 #define INST_DELETE_RKAB_RESULTS(T, Tid) \
     void delete_results_rkab##Tid(results_rkab<T> *results) \
     {   delete_results_rkab<T>(results);   }
-// I'll use this in rkab_results.cpp through MAP_TARGETS_TO().
 
-// To instantiate rkab under suffixed symbol with types and tableau bound
+/** @brief Instantiate rkab under suffixed symbol with types and tableau bound
+ * @details I'll use this in implementation files (eg., 'rk45.cpp', 'rk23.cpp') through
+ * MAP_TARGETS_TO(). astages and bstages must be literal integers! */
 #define INST_RKAB(sfx, T, tolT, astages, bstages, ba, bb, a, c) \
     results_rkab<T> *rk##sfx(T *u_init, int dim, int maxsteps, tolT tol,  \
                              T t, T t_end, void (*get_f)(T, T*, T*))      \
     {   return rkab<T, tolT>(astages, bstages, ba, bb, a, c,              \
                              u_init, dim, maxsteps, tol, t, t_end, get_f);}
-// I'll use this in implementation files (eg., 'rk45.cpp', 'rk23.cpp') through
-//  MAP_TARGETS_TO(). astages and bstages must be literal integers!
 
-//// Expose C-extern interfaces of instantiated functions
+// Expose C-extern interfaces of instantiated functions
 
 #ifndef __cplusplus 
     // We're included in a C context to define the library interface.

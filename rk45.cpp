@@ -1,8 +1,9 @@
-// Runge-Kutta-Fehlberg method
+/// Runge-Kutta-Fehlberg method: adaptive step Runge-Kutta implementation
+/// I'm providing a C interface; see adaptive_step_rk.h for details.
 #include "rkab.hpp" // templates
 #include "adaptive_step_rk.h" // interface
 
-// Vs Butcher tableau: trailing zeroes removed
+// Modified Butcher tableau: trailing zeroes removed
 // Additionally, A is transposed and flattened: convenient for C/C++ iteration.
 #define A {1/4.L, 3/32.L, 1932/2197.L, 439/216.L, -8/27.L,\
                   9/32.L, -7200/2197.L,  -8,          2,\
