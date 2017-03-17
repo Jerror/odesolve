@@ -3,7 +3,9 @@
  * functions of arbitrary Butcher tableau, floating-point compatible 
  * data type "T", and tolerance type "tolT" (accepts either T or T*).
  * Provides templates for the return type of rkab<T, tolT> and its API, and
- * templates for any auxilliary functions used by rkab.*/
+ * templates for any auxilliary functions used by rkab.
+ * @author Jeremiah O'Neil
+ * @copyright GNU Public License. */
 #ifndef INC_RKAB_hpp // #include guard
 #define INC_RKAB_hpp // ensure this file is included at most once per unit
 
@@ -20,16 +22,17 @@ using namespace std;
 
 /** @brief Structure template for the return type of adaptive step size 
  * Runge-Kutta methods.
- * @details Holds the number of accepted steps "numsteps", the number of 
- * steps where a failure occured "numfailures", and pointers to the
- * solution trajectory *u and the corresponding parameter array *t.
- * @tparam T The data type of the trajectory and parameter, eg., double. */
+ * @tparam T Floating-point compatible data type. */
 template<typename T>
 struct results_rkab
 {
+    /// The number of accepted steps
     int numsteps;
+    /// Pointer to the array of parameters corresponding to the solution
     T *t;
+    /// Pointer to the solution trajectory (array of state arrays)
     T *u;
+    /// The number of steps where a failure occured
     int numfailures;
 };
 
@@ -47,7 +50,12 @@ void delete_results_rkab(results_rkab<T> *results)
 /** @brief Function template for calculating relative acceptability for scalar
  * tolerance.
  * @details I define acceptability as the minimum over all elements of the
- * ratio of tolerance to error. */
+ * ratio of tolerance to error.
+ * @param dim The dimension of the system.
+ * @param ua A proposed state of the system.
+ * @param ub A proposed state of the system computed to a higher order.
+ * @param tol The relative tolerance for the local error of the system.
+ * @tparam T Floating-point compatible data type. */
 template<typename T>
 T acceptability_rel(int dim, T *ua, T *ub, T tol)
 {
@@ -60,8 +68,16 @@ T acceptability_rel(int dim, T *ua, T *ub, T tol)
 
 /** @brief Function template for calculating relative acceptability for an array
  * of tolerances.
- * @details Overload of the scalar method for "tol" a pointer type, assumedly to
- * an array of tolerances, one for each component of u. */
+ * @details Overload of the scalar method for "tol" a pointer type, assumedly 
+ * to an array of tolerances, one for each component of u. I define 
+ * acceptability as the minimum over all elements of the ratio of tolerance
+ * to error.
+ * @param dim The dimension of the system.
+ * @param ua A proposed state of the system.
+ * @param ub A proposed state of the system computed to a higher order.
+ * @param tol A pointer to an array of relative tolerances for the local
+ * error of the system.
+ * @tparam T Floating-point compatible data type. */
 template<typename T>
 T acceptability_rel(int dim, T *ua, T *ub, T *tol)
 {
@@ -80,8 +96,15 @@ T acceptability_rel(int dim, T *ua, T *ub, T *tol)
  * and leading zeroes respectively removed. Dynamically allocates memory for
  * the solution and returns a pointer to a results_rkab<T> instance containing
  * that solution.
- * @arg get_f A callback function get_f(t, *u_t, *f) which writes the
- * derivative of u at time t and array u_t to array f.
+ * @param u_init The initial state array of the system.
+ * @param dim The dimension of the system.
+ * @param maxsteps The maximum number of iterations to run.
+ * @param tol The relative tolerance or a pointer to an array of relative
+ * tolerances for the local error of the system at each step.
+ * @param t The initial value of the system parameter.
+ * @param t_end The target value of the system parameter.
+ * @param get_f A callback function get_f(t, *u_t, *f) which writes the
+ * derivative of u at system parameter t and state u_t to array f.
  * @tparam T Floating-point compatible data type.
  * @tparam Ttol Tolerance type: should be T (scalar) or T* (array). */
 template<typename T, typename tolT>

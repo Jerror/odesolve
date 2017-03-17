@@ -1,5 +1,17 @@
+/** @brief Euler method implementation file
+ * @author Jeremiah O'Neil
+ * @copyright GNU Public License. */
 #include "euler.h"
 
+/** @brief Euler method
+ * @param u [out] The memory to write the solution to
+ * @param u_init The initial state array of the system.
+ * @param dim The dimension of the system.
+ * @param numsteps The number of iterations to run.
+ * @param h The system parameter iteration step size.
+ * @param t The initial value of the system parameter.
+ * @param get_f A callback function get_f(t, *u_t, *f) which writes the
+ * derivative of u at system parameter t and state u_t to array f.*/
 void euler(double *u, double *u_init, int dim, int numsteps, 
            double h, double t, derivative_function get_f)
 {

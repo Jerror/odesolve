@@ -1,5 +1,7 @@
-/// Runge-Kutta-Fehlberg method: adaptive step Runge-Kutta implementation
-/// I'm providing a C interface; see adaptive_step_rk.h for details.
+/** @brief Runge-Kutta-Fehlberg method: adaptive step RungeKutta implementation
+ * @details I'm providing a C interface; see adaptive_step_rk.h for details.
+ * @author Jeremiah O'Neil
+ * @copyright GNU Public License. */
 #include "rkab.hpp" // templates
 #include "adaptive_step_rk.h" // interface
 

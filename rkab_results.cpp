@@ -1,5 +1,7 @@
-/// Implement rkab_results API (ie., provide methods for deletion)
-/// I'm providing a C interface; see adaptive_step_rk.h for details.
+/** @brief Implement rkab_results API (ie., provide methods for deletion)
+ * @details I'm providing a C interface; see adaptive_step_rk.h for details.
+ * @author Jeremiah O'Neil
+ * @copyright GNU Public License. */
 #include "rkab.hpp" // templates
 #include "adaptive_step_rk.h" // interface
 

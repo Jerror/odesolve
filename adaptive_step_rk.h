@@ -3,7 +3,9 @@
  * extern all of the objects I want to expose. I'll use macros to help. This 
  * header is meant to be included at library compile-time by C++ source to 
  * produce the C-compatible interface, and included at program compile-time by 
- * C to define that interface. */
+ * C to define that interface.
+ * @author Jeremiah O'Neil
+ * @copyright GNU Public License. */
 #ifndef INC_ADAPTIVE_STEP_RK_h // #include guard
 #define INC_ADAPTIVE_STEP_RK_h // ensure this is included at most once per unit
 
