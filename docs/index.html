@@ -65,9 +65,9 @@ $(function() {
 <div class="contents">
 <div class="textblock"><p>(Dox hosted at <a href="https://jerror.github.io/odesolve/">https://jerror.github.io/odesolve/</a>)</p>
 <p>A mixed C/C++ library of custom ODE solvers. Set up for C linkage and static compilation, as suitable for use in Python through ctypes, but written mostly as templated C++, for safe and simple generalization of the methods.</p>
-<p>Presently, the library provides a dead simple fixed-step euler method (source <a class="el" href="euler_8c.html" title="Euler method implementation file. ">euler.c</a>) and a variety of adaptive step size Runge-Kutta methods for scalar and vector relatve local tolerance (instantiated from a template in <a class="el" href="rkab_8hpp.html" title="Templates for adaptive step size Runge-Kutta solver. ">rkab.hpp</a>). Adaptive step size Runge-Kutta methods of any order for any floating-point compatible data type can be trivially instantiated given the Butcher tableau; see <a class="el" href="rk45_8cpp.html" title="Runge-Kutta-Fehlberg method: adaptive step Runge-Kutta implementation. ">rk45.cpp</a> for an example. The C interface of the euler method is provided by inclusion of <a class="el" href="euler_8h.html" title="Euler method interface header. ">euler.h</a>, and those of the Runge-Kutta methods are provided by inclusion of <a class="el" href="adaptive__step__rk_8h.html" title="Adaptive step size Runge-Kutta interface. ">adaptive_step_rk.h</a>.</p>
+<p>Presently, the library provides a dead simple fixed-step euler method (source <a class="el" href="euler_8c.html" title="Euler method implementation file. ">euler.c</a>) and a variety of adaptive step size Runge-Kutta methods for scalar and vector relative local tolerance (instantiated from a template in <a class="el" href="rkab_8hpp.html" title="Templates for adaptive step size Runge-Kutta solver. ">rkab.hpp</a>). Adaptive step size Runge-Kutta methods of any order for any floating-point compatible data type can be trivially instantiated given the Butcher tableau; see <a class="el" href="rk45_8cpp.html" title="Runge-Kutta-Fehlberg method: adaptive step Runge-Kutta implementation. ">rk45.cpp</a> for an example. The C interface of the euler method is provided by inclusion of <a class="el" href="euler_8h.html" title="Euler method interface header. ">euler.h</a>, and those of the Runge-Kutta methods are provided by inclusion of <a class="el" href="adaptive__step__rk_8h.html" title="Adaptive step size Runge-Kutta interface. ">adaptive_step_rk.h</a>.</p>
 <p>The memory required for the solution of the euler method is known at runtime, so the euler method takes the preallocated memory as an argument, writes it, and returns nothing; but the memory required for the adaptive Runge-Kutta methods is not known until the method completes, so those methods dynamically allocate the memory required and return a pointer to a class encapsulating the results, namely, <a class="el" href="structresults__rkab.html" title="Structure template for the return type of adaptive step size Runge-Kutta methods. ...">results_rkab</a>. The class is templated to instantiate for any requested floating-point compatible data type in <a class="el" href="rkab_8hpp.html" title="Templates for adaptive step size Runge-Kutta solver. ">rkab.hpp</a>, and in compilation the file <a class="el" href="results__rkab_8cpp.html" title="Implement results_rkab API (ie., provide methods for deletion). ">results_rkab.cpp</a> instantiates the class according to the definitions in <a class="el" href="adaptive__step__rk_8h.html" title="Adaptive step size Runge-Kutta interface. ">adaptive_step_rk.h</a>, which then exports the definitions with C linkage under suffixed names. The same is done for the adaptive step size Runge-Kutta methods for different types, via the implementation files <a class="el" href="rk12_8cpp.html" title="Heun-Euler method: adaptive step Runge-Kutta implementation. ">rk12.cpp</a>, <a class="el" href="rk23_8cpp.html" title="Bogacki-Shampine method: adaptive step Runge-Kutta implementation. ">rk23.cpp</a> and <a class="el" href="rk45_8cpp.html" title="Runge-Kutta-Fehlberg method: adaptive step Runge-Kutta implementation. ">rk45.cpp</a>. Instances of <a class="el" href="structresults__rkab.html" title="Structure template for the return type of adaptive step size Runge-Kutta methods. ...">results_rkab</a> can be freed by calling delete_results_rkab, suffixed for the appropriate type.</p>
-<p>Presently, the Runge-Kutta methods and results class are exported for data types float, double and long double under symbols suffixed by _f, _d and _g respectively; no suffix aliases _d (double). The euler method is only provided for double type data. Runge-Kutta methods accepting array tolerance (as opposed to scalar) are exported with the suffix _arrtol in addition to (preceding) the suffix denoting the data type.</p>
+<p>Presently, the Runge-Kutta methods and results class are exported for data types float, double and long double under symbols suffixed by _f, _d and _g respectively. A symbol with no suffix is an alias for that with _d (double data type). The euler method is only provided for double type data. Runge-Kutta methods accepting array tolerance (as opposed to scalar) are exported with the suffix _arrtol in addition to (preceding) the suffix denoting the data type.</p>
 <p>The symbols currently exported are:</p><ul>
 <li>euler</li>
 <li>rk12</li>
@@ -79,9 +79,9 @@ $(function() {
 <li>rk12_d</li>
 <li>rk23_d</li>
 <li>rk45_d</li>
-<li>rk12_f</li>
-<li>rk23_f</li>
-<li>rk45_f</li>
+<li>rk12_g</li>
+<li>rk23_g</li>
+<li>rk45_g</li>
 <li>rk12_arrtol</li>
 <li>rk23_arrtol</li>
 <li>rk45_arrtol</li>
@@ -91,9 +91,9 @@ $(function() {
 <li>rk12_arrtol_d</li>
 <li>rk23_arrtol_d</li>
 <li>rk45_arrtol_d</li>
-<li>rk12_arrtol_f</li>
-<li>rk23_arrtol_f</li>
-<li>rk45_arrtol_f</li>
+<li>rk12_arrtol_g</li>
+<li>rk23_arrtol_g</li>
+<li>rk45_arrtol_g</li>
 <li><a class="el" href="structresults__rkab.html" title="Structure template for the return type of adaptive step size Runge-Kutta methods. ...">results_rkab</a></li>
 <li>results_rkab_f</li>
 <li>results_rkab_d</li>
