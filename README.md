@@ -1,4 +1,6 @@
 # libode {#mainpage}
+(Dox hosted at https://jerror.github.io/odesolve/)
+
 A mixed C/C++ library of custom ODE solvers. Set up for C linkage and static compilation, as suitable for use in Python through ctypes, but written mostly as templated C++, for safe and simple generalization of the methods.
 
 Presently, the library provides a dead simple fixed-step euler method (source euler.c) and a variety of adaptive step size Runge-Kutta methods for scalar and vector relatve local tolerance (instantiated from a template in rkab.hpp). Adaptive step size Runge-Kutta methods of any order for any floating-point compatible data type can be trivially instantiated given the Butcher tableau; see rk45.cpp for an example. The C interface of the euler method is provided by inclusion of euler.h, and those of the Runge-Kutta methods are provided by inclusion of adaptive\_step\_rk.h.
