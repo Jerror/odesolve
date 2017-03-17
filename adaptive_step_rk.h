@@ -30,9 +30,9 @@
 
 // Macros for implementation
 
-/** @brief Instantiate delete_rkab_results under suffixed symbol for type T
- * @details I'll use this in rkab_results.cpp through MAP_TARGETS_TO().*/
-#define INST_DELETE_RKAB_RESULTS(T, Tid) \
+/** @brief Instantiate delete_results_rkab under suffixed symbol for type T
+ * @details I'll use this in results_rkab.cpp through MAP_TARGETS_TO().*/
+#define INST_DELETE_RESULTS_RKAB(T, Tid) \
     void delete_results_rkab##Tid(results_rkab<T> *results) \
     {   delete_results_rkab<T>(results);   }
 
@@ -63,10 +63,10 @@
 extern "C" { // use C linkage. Forbids symbol mangling (and thus overloading)
 #endif
 
-#define EXPOSE_DELETE_RKAB_RESULTS(T, Tid) \
+#define EXPOSE_DELETE_RESULTS_RKAB(T, Tid) \
     void delete_results_rkab##Tid(RESULTS_RKAB(T, Tid)*);
-// for rkab_results.cpp
-MAP_TARGETS_TO(EXPOSE_DELETE_RKAB_RESULTS)
+// for results_rkab.cpp
+MAP_TARGETS_TO(EXPOSE_DELETE_RESULTS_RKAB)
 
 #define EXPOSE_RKAB(AB, T, Tid) \
     RESULTS_RKAB(T, Tid) *rk##AB##Tid                                      \

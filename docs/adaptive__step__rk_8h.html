@@ -79,9 +79,9 @@ Macros</h2></td></tr>
 <tr class="memitem:ae29ae787bc8cd2757b8244749bf14948"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="adaptive__step__rk_8h.html#ae29ae787bc8cd2757b8244749bf14948">MAP_TARGETS_TO</a>(F)</td></tr>
 <tr class="memdesc:ae29ae787bc8cd2757b8244749bf14948"><td class="mdescLeft">&#160;</td><td class="mdescRight">Map macro functions of the form F(T, Tid) to target types and type IDs.  <a href="#ae29ae787bc8cd2757b8244749bf14948">More...</a><br /></td></tr>
 <tr class="separator:ae29ae787bc8cd2757b8244749bf14948"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af0c849480a4ba57871222d05273f6c81"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="adaptive__step__rk_8h.html#af0c849480a4ba57871222d05273f6c81">INST_DELETE_RKAB_RESULTS</a>(T,  Tid)</td></tr>
-<tr class="memdesc:af0c849480a4ba57871222d05273f6c81"><td class="mdescLeft">&#160;</td><td class="mdescRight">Instantiate delete_rkab_results under suffixed symbol for type T.  <a href="#af0c849480a4ba57871222d05273f6c81">More...</a><br /></td></tr>
-<tr class="separator:af0c849480a4ba57871222d05273f6c81"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af6710e6567f72f40241ab2369e8a8894"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="adaptive__step__rk_8h.html#af6710e6567f72f40241ab2369e8a8894">INST_DELETE_RESULTS_RKAB</a>(T,  Tid)</td></tr>
+<tr class="memdesc:af6710e6567f72f40241ab2369e8a8894"><td class="mdescLeft">&#160;</td><td class="mdescRight">Instantiate delete_results_rkab under suffixed symbol for type T.  <a href="#af6710e6567f72f40241ab2369e8a8894">More...</a><br /></td></tr>
+<tr class="separator:af6710e6567f72f40241ab2369e8a8894"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a218da8d890b8be206e1c8b332d926f2f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="adaptive__step__rk_8h.html#a218da8d890b8be206e1c8b332d926f2f">INST_RKAB</a>(sfx,  T,  tolT,  astages,  bstages,  ba,  bb,  a,  c)</td></tr>
 <tr class="memdesc:a218da8d890b8be206e1c8b332d926f2f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Instantiate rkab under suffixed symbol with types and tableau bound.  <a href="#a218da8d890b8be206e1c8b332d926f2f">More...</a><br /></td></tr>
 <tr class="separator:a218da8d890b8be206e1c8b332d926f2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -93,14 +93,14 @@ Macros</h2></td></tr>
 
 <p class="definition">Definition in file <a class="el" href="adaptive__step__rk_8h_source.html">adaptive_step_rk.h</a>.</p>
 </div><h2 class="groupheader">Macro Definition Documentation</h2>
-<a id="af0c849480a4ba57871222d05273f6c81"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af0c849480a4ba57871222d05273f6c81">&#9670;&nbsp;</a></span>INST_DELETE_RKAB_RESULTS</h2>
+<a id="af6710e6567f72f40241ab2369e8a8894"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af6710e6567f72f40241ab2369e8a8894">&#9670;&nbsp;</a></span>INST_DELETE_RESULTS_RKAB</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define INST_DELETE_RKAB_RESULTS</td>
+          <td class="memname">#define INST_DELETE_RESULTS_RKAB</td>
           <td>(</td>
           <td class="paramtype">&#160;</td>
           <td class="paramname">T, </td>
@@ -121,8 +121,8 @@ Macros</h2></td></tr>
 <b>Value:</b><div class="fragment"><div class="line"><span class="keywordtype">void</span> <a class="code" href="rkab_8hpp.html#a44a9cd339e0494846e22f77afc4caeb2">delete_results_rkab</a>##Tid(<a class="code" href="structresults__rkab.html">results_rkab&lt;T&gt;</a> *results) \</div><div class="line">    {   delete_results_rkab&lt;T&gt;(results);   }</div><div class="ttc" id="structresults__rkab_html"><div class="ttname"><a href="structresults__rkab.html">results_rkab</a></div><div class="ttdoc">Structure template for the return type of adaptive step size Runge-Kutta methods. ...</div><div class="ttdef"><b>Definition:</b> <a href="rkab_8hpp_source.html#l00029">rkab.hpp:29</a></div></div>
 <div class="ttc" id="rkab_8hpp_html_a44a9cd339e0494846e22f77afc4caeb2"><div class="ttname"><a href="rkab_8hpp.html#a44a9cd339e0494846e22f77afc4caeb2">delete_results_rkab</a></div><div class="ttdeci">void delete_results_rkab(results_rkab&lt; T &gt; *results)</div><div class="ttdoc">Function template for deleting results_rkab instances. </div><div class="ttdef"><b>Definition:</b> <a href="rkab_8hpp_source.html#l00045">rkab.hpp:45</a></div></div>
 </div><!-- fragment -->
-<p>Instantiate delete_rkab_results under suffixed symbol for type T. </p>
-<p>I'll use this in <a class="el" href="rkab__results_8cpp.html" title="Implement rkab_results API (ie., provide methods for deletion). ">rkab_results.cpp</a> through <a class="el" href="adaptive__step__rk_8h.html#ae29ae787bc8cd2757b8244749bf14948" title="Map macro functions of the form F(T, Tid) to target types and type IDs. ">MAP_TARGETS_TO()</a>. </p>
+<p>Instantiate delete_results_rkab under suffixed symbol for type T. </p>
+<p>I'll use this in <a class="el" href="results__rkab_8cpp.html" title="Implement results_rkab API (ie., provide methods for deletion). ">results_rkab.cpp</a> through <a class="el" href="adaptive__step__rk_8h.html#ae29ae787bc8cd2757b8244749bf14948" title="Map macro functions of the form F(T, Tid) to target types and type IDs. ">MAP_TARGETS_TO()</a>. </p>
 
 <p class="definition">Definition at line <a class="el" href="adaptive__step__rk_8h_source.html#l00035">35</a> of file <a class="el" href="adaptive__step__rk_8h_source.html">adaptive_step_rk.h</a>.</p>
 
