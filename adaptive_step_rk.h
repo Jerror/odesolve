@@ -39,10 +39,10 @@
 /** @brief Instantiate rkab under suffixed symbol with types and tableau bound
  * @details I'll use this in implementation files (eg., 'rk45.cpp', 'rk23.cpp')
  * through MAP_TARGETS_TO(). */
-#define INST_RKAB(sfx, T, tolT, astages, bstages, ba, bb, a, c) \
+#define INST_RKAB(sfx, T, tolT, order, astages, bstages, ba, bb, a, c) \
     results_rkab<T> *rk##sfx(T *u_init, int dim, int maxsteps, tolT tol,  \
                              T t, T t_end, void (*get_f)(T, T*, T*))      \
-    {   return rkab<T, tolT>(astages, bstages, ba, bb, a, c,              \
+    {   return rkab<T, tolT>(order, astages, bstages, ba, bb, a, c,       \
                              u_init, dim, maxsteps, tol, t, t_end, get_f);}
 
 // Expose C-extern interfaces of instantiated functions

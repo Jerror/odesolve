@@ -94,12 +94,13 @@ T acceptability_rel(int dim, T *ua, T *ub, T *tol)
  * @details Solves a given system over parameterized domain to given relative
  * tolerance in local error. Dynamically allocates memory for the solution and
  * returns a pointer to a results_rkab instance containing that solution.
- * @param astages,bstages,ba,bb,a,c Modified extended Butcher tableau to be
- * bound on instantiation, defining a particular method. In relation to a
+ * @param order,astages,bstages,ba,bb,a,c Modified extended Butcher tableau to
+ * on bound on instantiation, defining a particular method. In relation to a
  * standard extended Butcher tableau, 'a' is expected to be transposed and
  * flattened with the  zero half removed and 'ba' and 'c' to have the trailing
  * and leading zeroes respectively removed. 'astages' and 'bstages' are the
- * number of stages of the low- and high-order methods respectively.
+ * number of stages of the low- and high-order methods respectively, and
+ * 'order' is the order of the high-order method.
  * @param u_init The initial state array of the system.
  * @param dim The dimension of the system.
  * @param maxsteps The maximum number of iterations to run.
@@ -112,14 +113,15 @@ T acceptability_rel(int dim, T *ua, T *ub, T *tol)
  * @tparam T Floating-point compatible data type.
  * @tparam Ttol Tolerance type: should be (scalar) T or (array) T*. */
 template<typename T, typename tolT>
-struct results_rkab<T> *rkab(const int astages, const int bstages,
+struct results_rkab<T> *rkab(const int order,
+			     const int astages, const int bstages,
                              const T *ba, const T *bb, const T *a, const T *c,
                              T *u_init, int dim, int maxsteps, tolT tol,
                              T t, T t_end, void (*get_f)(T, T*, T*))
 {
     assert(astages < bstages);
     // Set some resonable acceptance patterns
-    const T acc_scale = pow(0.9, bstages);
+    const T acc_scale = pow(0.9, order);
     const T max_adapt = 10;
     const T min_adapt = 0.5;
 
@@ -208,7 +210,7 @@ struct results_rkab<T> *rkab(const int astages, const int bstages,
                 copy(ub, ub + dim, u_k);
                 u.insert(u.end(), ub, ub + dim);
                 // Adapt step size; don't increase by a factor > max_adapt
-                h *= min(max_adapt, (T)(pow(acceptability, 1.0/bstages)));
+                h *= min(max_adapt, (T)(pow(acceptability, 1.0/order)));
                 break;
             }
             else
@@ -218,7 +220,7 @@ struct results_rkab<T> *rkab(const int astages, const int bstages,
                     failures = true;
                     ++numfailures;
                     // Adapt step size; don't decrease by a factor < min_adapt
-                    h *= max(min_adapt, (T)(pow(acceptability, 1.0/bstages)));
+                    h *= max(min_adapt, (T)(pow(acceptability, 1.0/order)));
                 } else { // We underestimated error! Be pessimistic.
                     h *= min_adapt;
                 }

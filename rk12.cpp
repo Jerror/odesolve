@@ -25,9 +25,9 @@
 #define INST_RK12(T, Tid) \
     static const T *ba##Tid = (T[])BA, *bb##Tid = (T[])BB, \
                    *a##Tid = (T[])A, *c##Tid = (T[])C;     \
-    INST_RKAB(12##Tid, T, T, 1, 2,                         \
+    INST_RKAB(12##Tid, T, T, 2, 1, 2,                      \
               ba##Tid, bb##Tid, a##Tid, c##Tid)            \
-    INST_RKAB(12_arrtol##Tid, T, T *, 1, 2,                \
+    INST_RKAB(12_arrtol##Tid, T, T *, 2, 1, 2,             \
               ba##Tid, bb##Tid, a##Tid, c##Tid)
 
 MAP_TARGETS_TO(INST_RK12)

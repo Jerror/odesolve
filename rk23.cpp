@@ -27,9 +27,9 @@
 #define INST_RK23(T, Tid) \
     static const T *ba##Tid = (T[])BA, *bb##Tid = (T[])BB, \
                    *a##Tid = (T[])A, *c##Tid = (T[])C;     \
-    INST_RKAB(23##Tid, T, T, 3, 4,                         \
+    INST_RKAB(23##Tid, T, T, 3, 3, 4,                      \
               ba##Tid, bb##Tid, a##Tid, c##Tid)            \
-    INST_RKAB(23_arrtol##Tid, T, T *, 3, 4,                \
+    INST_RKAB(23_arrtol##Tid, T, T *, 3, 3, 4,             \
               ba##Tid, bb##Tid, a##Tid, c##Tid)
 
 MAP_TARGETS_TO(INST_RK23)
